@@ -1,6 +1,7 @@
 const CROSS = 'X';
 const ZERO = 'O';
 const EMPTY = ' ';
+const RED = '#FF0000';
 
 const container = document.getElementById('fieldWrapper');
 
@@ -8,7 +9,16 @@ let dimension = 3;
 let field = [];
 let counter = 0;
 let end = false;
-setupGame();
+
+document.addEventListener('DOMContentLoaded', () => {
+    if (!container) {
+        console.error("Элемент с ID 'fieldWrapper' не найден в HTML.");
+        return;
+    }
+    setupGame();
+});
+
+
 
 function setupGame() {
     let inputSize = prompt("Введите размер поля N (например, 3 для 3x3):", dimension);
@@ -36,13 +46,28 @@ function initializeField(size) {
     }
 }
 
+function initializeGameAssets(size) {
+    initializeField(size);
+    counter = 0;
+    end = false;
+}
+
 function resetClickHandler() {
     initializeField(dimension);
     end = false;
     counter = 0;
-
     renderGrid(dimension);
 }
+
+function addResetListener() {
+    const resetButton = document.getElementById('reset');
+    if (resetButton) {
+        resetButton.removeEventListener('click', resetClickHandler);
+        resetButton.addEventListener('click', resetClickHandler);
+    }
+}
+
+
 
 function renderGrid(dimension) {
     container.innerHTML = '';
@@ -59,75 +84,8 @@ function renderGrid(dimension) {
     }
 }
 
-function initializeGameAssets(size) {
-    initializeField(size);
-    counter = 0;
-    end = false;
-}
-
-
-function cellClickHandler(row, col) {
-    console.log(`Clicked on cell: ${row}, ${col}`);
-
-    if (row >= dimension || col >= dimension || field[row][col] !== EMPTY || end) return;
-
-    counter += 1;
-
-    const currentPlayerSymbol = counter % 2 === 1 ? CROSS : ZERO;
-
-    field[row][col] = currentPlayerSymbol;
-    renderSymbolInCell(currentPlayerSymbol, row, col);
-
-    if (isWin(row, col)) {
-        alert(`Победил игрок за ${currentPlayerSymbol}`);
-        end = true;
-    } else if (isDraw()) {
-        alert('Победила дружба');
-        end = true;
-    }
-}
-
-function isWin(row, col) {
-    const D = dimension;
-
-    let first = field[row][0];
-    for (let i = 0; i < D; i++) {
-        if (field[row][i] === EMPTY) break;
-        if (field[row][i] !== first) break;
-        if (i === D - 1) return true;
-    }
-
-    first = field[0][col];
-    for (let i = 0; i < D; i++) {
-        if (field[i][col] === EMPTY) break;
-        if (field[i][col] !== first) break;
-        if (i === D - 1) return true;
-    }
-
-    if (row === col) {
-        first = field[0][0];
-        for (let i = 0; i < D; i++) {
-            if (field[i][i] === EMPTY) break;
-            if (field[i][i] !== first) break;
-            if (i === D - 1) return true;
-        }
-    }
-
-    if (row + col === D - 1) {
-        first = field[0][D - 1];
-        for (let i = 0; i < D; i++) {
-            if (field[i][D - 1 - i] === EMPTY) break;
-            if (field[i][D - 1 - i] !== first) break;
-            if (i === D - 1) return true;
-        }
-    }
-
-    return false;
-}
-
 function renderSymbolInCell(symbol, row, col, color = '#333') {
     const targetCell = findCell(row, col);
-
     if (targetCell) {
         targetCell.textContent = symbol;
         targetCell.style.color = color;
@@ -140,12 +98,96 @@ function findCell(row, col) {
     return targetRow.querySelectorAll('td')[col];
 }
 
-function addResetListener() {
-    const resetButton = document.getElementById('reset');
-    if (resetButton) {
-        resetButton.removeEventListener('click', resetClickHandler);
-        resetButton.addEventListener('click', resetClickHandler);
+
+function cellClickHandler(row, col) {
+    if (field[row][col] !== EMPTY || end) return;
+
+    counter += 1;
+    const currentPlayerSymbol = counter % 2 === 1 ? CROSS : ZERO;
+
+    field[row][col] = currentPlayerSymbol;
+    renderSymbolInCell(currentPlayerSymbol, row, col, '#333');
+
+    const winningCoords = isWin(row, col);
+
+    if (winningCoords) {
+        alert(`Победил игрок за ${currentPlayerSymbol}`);
+        end = true;
+        renderWinningLine(winningCoords, RED);
+
+    } else if (isDraw()) {
+        alert('Победила дружба');
+        end = true;
     }
+}
+
+function renderWinningLine(coordsArray, color) {
+    coordsArray.forEach(coord => {
+        renderSymbolInCell(field[coord.r][coord.c], coord.r, coord.c, color);
+    });
+}
+
+
+function isWin(row, col) {
+    const D = dimension;
+
+    let first = field[row][0];
+    if (first !== EMPTY) {
+        let match = true;
+        for (let i = 1; i < D; i++) {
+            if (field[row][i] !== first) { match = false; break; }
+        }
+        if (match) {
+            const line = [];
+            for (let j = 0; j < D; j++) line.push({ r: row, c: j });
+            return line;
+        }
+    }
+
+    first = field[0][col];
+    if (first !== EMPTY) {
+        let match = true;
+        for (let i = 1; i < D; i++) {
+            if (field[i][col] !== first) { match = false; break; }
+        }
+        if (match) {
+            const line = [];
+            for (let j = 0; j < D; j++) line.push({ r: j, c: col });
+            return line;
+        }
+    }
+
+    if (row === col) {
+        first = field[0][0];
+        if (first !== EMPTY) {
+            let match = true;
+            for (let i = 1; i < D; i++) {
+                if (field[i][i] !== first) { match = false; break; }
+            }
+            if (match) {
+                const line = [];
+                for (let j = 0; j < D; j++) line.push({ r: j, c: j });
+                return line;
+            }
+        }
+    }
+
+    if (row + col === D - 1) {
+        first = field[0][D - 1];
+        if (first !== EMPTY) {
+            let match = true;
+            for (let i = 1; i < D; i++) {
+                if (field[i][D - 1 - i] !== first) { match = false; break; }
+            }
+            if (match) {
+                const line = [];
+                for (let j = 0; j < D; j++) line.push({ r: j, c: D - 1 - j });
+                return line;
+            }
+        }
+    }
+
+    return null;
 }
 
 function isDraw() {
