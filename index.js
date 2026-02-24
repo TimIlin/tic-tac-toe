@@ -47,6 +47,45 @@ function cellClickHandler (row, col) {
         field[row][col] = ZERO;
         renderSymbolInCell(ZERO, row, col);
     }
+    if(isWin(row,col))
+        alert(`победил игрок за ${counter % 2 == 1 ? CROSS : ZERO}`);
+}
+
+function isWin(row, col){
+    //строки
+    let first = field[row][0];
+    for(let i = 0; i < 3; i++){
+        if(field[row][i] === EMPTY) break;
+        if(field[row][i] !== first) break;
+        if(i==2) return true;
+    }
+    //столбцы
+    first = field[0][col];
+    for(let i = 0; i < 3; i++){
+        if(field[i][col] === EMPTY) break;
+        if(field[i][col] !== first) break;
+        if(i==2) return true;
+    }
+
+    //диагонали
+    if(row == col){
+        first = field[0][0]
+        for(let i = 0; i < 3; i++){
+            if(field[i][i] === EMPTY) break;
+            if(field[i][i] !== first) break;
+            if(i==2) return true;
+        }
+    }
+    if(row + col == 2){
+        first = field[0][2-i]
+        for(let i = 0; i < 3; i++){
+            if(field[i][2-i] === EMPTY) break;
+            if(field[i][2-i] !== first) break;
+            if(i==2) return true;
+        }
+    }
+
+    return false
 }
 
 function renderSymbolInCell (symbol, row, col, color = '#333') {
