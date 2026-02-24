@@ -26,14 +26,27 @@ function renderGrid (dimension) {
     }
 }
 
+field = [
+    [EMPTY, EMPTY, EMPTY],
+    [EMPTY, EMPTY, EMPTY],
+    [EMPTY, EMPTY, EMPTY],
+];
+
+counter = 0;
+
 function cellClickHandler (row, col) {
-    // Пиши код тут
+    
     console.log(`Clicked on cell: ${row}, ${col}`);
-
-
-    /* Пользоваться методом для размещения символа в клетке так:
+    
+    if (field[row][col] !== EMPTY) return;
+    counter += 1;
+    if (counter % 2 == 1) {
+        field[row][col] = CROSS;
+        renderSymbolInCell(CROSS, row, col);
+    } else {
+        field[row][col] = ZERO;
         renderSymbolInCell(ZERO, row, col);
-     */
+    }
 }
 
 function renderSymbolInCell (symbol, row, col, color = '#333') {
