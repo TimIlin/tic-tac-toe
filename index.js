@@ -77,7 +77,7 @@ function isWin(row, col){
         }
     }
     if(row + col == 2){
-        first = field[0][2-i]
+        first = field[0][2]
         for(let i = 0; i < 3; i++){
             if(field[i][2-i] === EMPTY) break;
             if(field[i][2-i] !== first) break;
